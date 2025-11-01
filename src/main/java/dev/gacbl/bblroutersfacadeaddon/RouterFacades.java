@@ -1,0 +1,41 @@
+package dev.gacbl.bblroutersfacadeaddon;
+
+import dev.gacbl.bblroutersfacadeaddon.facade.FacadeAttachments;
+import dev.gacbl.bblroutersfacadeaddon.item.ModCreativeModTabs;
+import dev.gacbl.bblroutersfacadeaddon.item.ModItems;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+
+@Mod(RouterFacades.MOD_ID)
+public class RouterFacades {
+    public static final String MOD_ID = "bblroutersfacadeaddon";
+    public static final String TARGET_NS = "routers";
+
+    public RouterFacades(IEventBus modEventBus, ModContainer modContainer) {
+        NeoForge.EVENT_BUS.register(this);
+        ModCreativeModTabs.register(modEventBus);
+        ModItems.register(modEventBus);
+        FacadeAttachments.register(modEventBus);
+        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+
+    }
+
+    @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
+    public static class ClientModEvents {
+        @SubscribeEvent
+        public static void onClientSetup(FMLClientSetupEvent event) {
+        }
+    }
+}
