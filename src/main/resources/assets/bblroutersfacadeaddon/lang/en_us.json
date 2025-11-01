@@ -1,9 +1,0 @@
-{
-  "creative.bblroutersfacadeaddon.tab": "BBL Routers Facades",
-  "item.bblroutersfacadeaddon.facade_applicator": "Facade Applicator",
-  "item.bblroutersfacadeaddon.facade_applicator.actions.cleared_facade": "Cleared router facade.",
-  "item.bblroutersfacadeaddon.facade_applicator.actions.cleared_picked_facade": "Cleared picked facade.",
-  "item.bblroutersfacadeaddon.facade_applicator.actions.no_facade": "No picked facade. Right-click a block to pick.",
-  "item.bblroutersfacadeaddon.facade_applicator.actions.applied_facade": "Applied facade: %s",
-  "item.bblroutersfacadeaddon.facade_applicator.actions.picked_facade": "Picked facade: %s"
-}
