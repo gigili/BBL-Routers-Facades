@@ -6,13 +6,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 import java.util.List;
 
-@EventBusSubscriber(modid = RouterFacades.MOD_ID)
+@EventBusSubscriber(modid = RouterFacades.MOD_ID, value = Dist.CLIENT)
 public final class FacadeColorForwarder {
     @SubscribeEvent
     public static void onBlockColors(RegisterColorHandlersEvent.Block e) {
