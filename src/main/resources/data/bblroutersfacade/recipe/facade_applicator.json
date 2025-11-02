@@ -11,7 +11,7 @@
       "item": "minecraft:iron_ingot"
     },
     "G": {
-      "item": "minecraft:glass"
+      "tag": "c:glass_blocks"
     },
     "S": {
       "item": "minecraft:stick"

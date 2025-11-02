@@ -5,5 +5,8 @@
   "item.bblroutersfacade.facade_applicator.actions.cleared_picked_facade": "Cleared picked facade.",
   "item.bblroutersfacade.facade_applicator.actions.no_facade": "No picked facade. Right-click a block to pick.",
   "item.bblroutersfacade.facade_applicator.actions.applied_facade": "Applied facade: %s",
-  "item.bblroutersfacade.facade_applicator.actions.picked_facade": "Picked facade: %s"
+  "item.bblroutersfacade.facade_applicator.actions.picked_facade": "Picked facade: %s",
+  "item.bblroutersfacade.facade_applicator.right_click": "Right click a block to select a facade",
+  "item.bblroutersfacade.facade_applicator.shift_right_click": "Crouch + right click to apply it",
+  "item.bblroutersfacade.facade_applicator.right_click_air": "Right click in the air to clear the selected facade"
 }

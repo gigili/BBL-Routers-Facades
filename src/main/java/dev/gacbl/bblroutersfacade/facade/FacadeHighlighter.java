@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -25,36 +24,31 @@ public final class FacadeHighlighter {
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
-        if (!isHoldingApplicator(mc.player.getMainHandItem()) &&
-                !isHoldingApplicator(mc.player.getOffhandItem())) return;
+        if (!isHoldingApplicator(mc.player.getMainHandItem()) && !isHoldingApplicator(mc.player.getOffhandItem()))
+            return;
 
         PoseStack pose = e.getPoseStack();
         Vec3 cam = e.getCamera().getPosition();
-
         var buffers = mc.renderBuffers().bufferSource();
         VertexConsumer lines = buffers.getBuffer(RenderType.lines());
 
         pose.pushPose();
 
         int r = 32;
-        BlockPos center = mc.player.blockPosition();
-
-        BlockPos.betweenClosedStream(center.offset(-r, -r, -r), center.offset(r, r, r)).forEach(pos -> {
-            var be = mc.level.getBlockEntity(pos);
+        BlockPos c = mc.player.blockPosition();
+        BlockPos.betweenClosedStream(c.offset(-r, -r, -r), c.offset(r, r, r)).forEach(p -> {
+            var be = mc.level.getBlockEntity(p);
             if (be == null) return;
-            var id = be.getData(FacadeAttachments.FACADE_ID.get());
-            if (id == null) return;
-            if (BuiltInRegistries.BLOCK.get(id) == null) return;
+            if (be.getData(FacadeAttachments.FACADE_STATE.get()) == null) return;
 
             pose.pushPose();
-            pose.translate(pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z);
-            AABB box = new AABB(0, 0, 0, 1, 1, 1).inflate(0.002);
+            pose.translate(p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z);
+            var box = new AABB(0, 0, 0, 1, 1, 1).inflate(0.002);
             LevelRenderer.renderLineBox(pose, lines, box, 0.2f, 0.6f, 1.0f, 1.0f);
             pose.popPose();
         });
 
         pose.popPose();
-
         buffers.endBatch(RenderType.lines());
     }
 

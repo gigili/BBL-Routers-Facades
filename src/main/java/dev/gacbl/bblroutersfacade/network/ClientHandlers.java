@@ -1,32 +1,22 @@
 package dev.gacbl.bblroutersfacade.network;
 
+import dev.gacbl.bblroutersfacade.facade.FacadeAttachments;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
 
 
 public final class ClientHandlers {
     public static void handleRefresh(FacadePayloads.FacadeRefresh msg) {
-        Minecraft mc = Minecraft.getInstance();
+        var mc = Minecraft.getInstance();
         mc.execute(() -> {
-            if (mc.level == null || mc.levelRenderer == null) return;
-
-            BlockPos pos = msg.pos();
-
-            var be = mc.level.getBlockEntity(pos);
+            if (mc.level == null) return;
+            var be = mc.level.getBlockEntity(msg.pos());
             if (be != null) {
+                if (msg.state() == null) be.removeData(FacadeAttachments.FACADE_STATE.get());
+                else be.setData(FacadeAttachments.FACADE_STATE.get(), msg.state());
                 be.requestModelDataUpdate();
             }
-
-            BlockState bs = mc.level.getBlockState(pos);
-            mc.levelRenderer.setBlockDirty(pos, bs, bs);
-
-            int sx = pos.getX() >> 4;
-            int sy = pos.getY() >> 4;
-            int sz = pos.getZ() >> 4;
-            mc.levelRenderer.setSectionDirtyWithNeighbors(sx, sy, sz);
-
-            mc.level.sendBlockUpdated(pos, bs, bs, 3);
+            var bs = mc.level.getBlockState(msg.pos());
+            mc.level.sendBlockUpdated(msg.pos(), bs, bs, 3);
         });
     }
 }
