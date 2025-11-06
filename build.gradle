@@ -157,11 +157,14 @@ dependencies {
     runtimeOnly "curse.maven:ctm-267602:5587515"
     runtimeOnly "curse.maven:fusion-854949:7058347"
     runtimeOnly "curse.maven:smjnlib-454372:6076757"
+    runtimeOnly "curse.maven:smjnconfiglib-438332:5546996"
     runtimeOnly "curse.maven:ctg-383129:6811960"
 
     runtimeOnly "curse.maven:resourcefullib-570073:5973188"
     runtimeOnly "curse.maven:athena-841890:6669522"
     runtimeOnly "curse.maven:chipped-456956:5813117"
+
+    runtimeOnly "curse.maven:rechiseled-558998:5663514"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

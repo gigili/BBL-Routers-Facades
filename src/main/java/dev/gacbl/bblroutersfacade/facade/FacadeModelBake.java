@@ -18,10 +18,11 @@ public class FacadeModelBake {
                 if (original == null) continue;
 
                 if ("routers".equals(ns) || "bbl_routers".equals(ns)) {
-                    // This is our router, wrap it with the Facade host wrapper
+                    // Our router block (Facade host)
                     models.put(mrl, FacadeModelWrapper.wrap(original));
-                } else if ("chipped".equals(ns)) {
-                    // This is a Chipped block, wrap it with the Neighbor wrapper
+                } else if ("chipped".equals(ns) || "rechiseled".equals(ns) || "connectedglass".equals(ns)) {
+                    // CRITICAL FIX: Wrap Connected Glass models with NeighborModelWrapper
+                    // This allows them to see the facade as a connected block.
                     models.put(mrl, new NeighborModelWrapper(original));
                 }
             }

@@ -2,14 +2,20 @@ package dev.gacbl.bblroutersfacade.facade;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
+import org.jetbrains.annotations.NotNull;
 
 public class FacadeConnectionHelper {
+
+    public static final @NotNull ModelProperty<BlockState> FACADE_STATE_PROPERTY = new ModelProperty<>();
+    public static final @NotNull ModelProperty<BlockPos> ROUTER_POS_PROPERTY = new ModelProperty<>();
 
     /**
      * Check if a block should connect to a facade in the given direction
@@ -23,12 +29,19 @@ public class FacadeConnectionHelper {
             if (neighborFacade != null) {
                 Block facadeBlock = neighborFacade.getBlock();
 
-                // 1. Check for exact block match (handles Chipped and most modded blocks)
+                // 1. Check for exact block match (Crucial for CTM/Fusion like Connected Glass)
                 if (block == facadeBlock) {
                     return true;
                 }
 
-                // 2. Check for vanilla equivalent types
+                // 2. Special handling for Connected Glass - check if both blocks are from the same mod
+                String blockNamespace = BuiltInRegistries.BLOCK.getKey(block).getNamespace();
+                String facadeNamespace = BuiltInRegistries.BLOCK.getKey(facadeBlock).getNamespace();
+                if ("connectedglass".equals(blockNamespace) && blockNamespace.equals(facadeNamespace)) {
+                    return true;
+                }
+
+                // 3. Check for vanilla equivalent types
                 if (block instanceof FenceBlock && facadeBlock instanceof FenceBlock) {
                     return true;
                 }

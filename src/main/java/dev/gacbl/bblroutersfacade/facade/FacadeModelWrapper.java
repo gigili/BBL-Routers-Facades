@@ -42,16 +42,15 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
             if (camo != null) {
                 var camoModel = lookup.apply(camo);
                 var wrappedView = new FacadeLevelWrapper(view);
-
-                // Get the ModelData the camo block would have (this is what neighbors need)
+                // 1. Calculate and retrieve the camo block's ModelData using the wrapped world view (CRITICAL for CTM)
                 var camoData = camoModel.getModelData(wrappedView, pos, camo, ModelData.EMPTY);
-
-                // Get the state for vanilla connections
                 BlockState connectedState = getConnectedState(view, pos, camo);
 
-                // Start with the camoData, THEN add our own property for rendering
-                return camoData.derive()
+                // Store all necessary data
+                return existing.derive()
                         .with(FacadeModelData.FACADE, connectedState)
+                        .with(FacadeModelData.CAMO_MODEL_DATA, camoData)
+                        .with(FacadeConnectionHelper.ROUTER_POS_PROPERTY, pos)
                         .build();
             }
         }
@@ -61,11 +60,16 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, ModelData data, @Nullable RenderType layer) {
         var camo = data.get(FacadeModelData.FACADE);
+        var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
 
         if (camo != null) {
             var model = lookup.apply(camo);
-            // Pass the *entire* model data, which includes Athena's CTM data
-            return model.getQuads(camo, side, rand, data, layer);
+            // Pass the stored ModelData to the underlying model (CRITICAL for CTM/Fusion)
+            var modelData = camoData != null ? camoData : ModelData.EMPTY;
+
+            // We rely on the underlying CTM/Fusion model to correctly suppress the quad,
+            // now that both models are correctly wrapped and receiving spoofed data.
+            return model.getQuads(camo, side, rand, modelData, layer);
         }
         return super.getQuads(state, side, rand, data, layer);
     }
@@ -73,11 +77,12 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
     @Override
     public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, ModelData data) {
         var camo = data.get(FacadeModelData.FACADE);
+        var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
 
         if (camo != null) {
             var model = lookup.apply(camo);
-            // Pass the *entire* model data, which includes Athena's CTM data
-            return model.getRenderTypes(camo, rand, data);
+            var modelData = camoData != null ? camoData : ModelData.EMPTY;
+            return model.getRenderTypes(camo, rand, modelData);
         }
         return super.getRenderTypes(state, rand, data);
     }
@@ -93,7 +98,6 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
         } else if (block instanceof WallBlock) {
             connectedState = updateWallConnections(level, pos, connectedState);
         }
-
         return connectedState;
     }
 
@@ -129,6 +133,7 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
         boolean east = canConnectToBlock(level, pos, Direction.EAST, state.getBlock());
         boolean west = canConnectToBlock(level, pos, Direction.WEST, state.getBlock());
 
+        // Update wall connections
         for (var property : state.getProperties()) {
             if (property instanceof EnumProperty && property.getName().contains("north")) {
                 String baseName = property.getName().replace("north", "");
@@ -145,7 +150,6 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
                 break;
             }
         }
-
         return state;
     }
 

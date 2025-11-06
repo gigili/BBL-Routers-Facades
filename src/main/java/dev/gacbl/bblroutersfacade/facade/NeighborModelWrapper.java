@@ -17,7 +17,7 @@ public class NeighborModelWrapper extends BakedModelWrapper<BakedModel> {
     }
 
     @Override
-    public @NotNull ModelData getModelData(BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData existing) {
+    public @NotNull ModelData getModelData(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData existing) {
         var wrappedView = new FacadeLevelWrapper(view);
         return original.getModelData(wrappedView, pos, state, existing);
     }

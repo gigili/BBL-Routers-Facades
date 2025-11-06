@@ -1,7 +1,6 @@
 package dev.gacbl.bblroutersfacade.facade;
 
 import dev.gacbl.bblroutersfacade.RouterFacades;
-import dev.gacbl.bblroutersfacade.facade.compat.ModCompatibilityManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -17,9 +16,6 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 
 @EventBusSubscriber(modid = RouterFacades.MOD_ID)
 public class FacadeBlockUpdater {
-
-    private static final ModCompatibilityManager COMPAT_MANAGER = ModCompatibilityManager.getInstance();
-
     @SubscribeEvent
     public static void onBlockUpdate(BlockEvent.NeighborNotifyEvent event) {
         Level level = (Level) event.getLevel();
@@ -61,10 +57,6 @@ public class FacadeBlockUpdater {
                         newState = newState.setValue(wallSideProperty, WallSide.NONE);
                     }
                 }
-            } else {
-                // 2. Handle Fence, IronBars, and ALL Modded Blocks (Delegated to Compatibility Manager)
-                // The manager handles updating the level and returning the final state.
-                newState = COMPAT_MANAGER.handleUpdate(level, pos, newState, direction, shouldConnectToFacade);
             }
         }
 
