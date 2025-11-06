@@ -2,6 +2,8 @@
 
 An addon mod for [BBL Routers](https://www.curseforge.com/minecraft/mc-mods/bbl-routers) which allows you to set facades on importers and exporters.
 
+![Mod showcase gif](https://i.imgur.com/hokuVie.gif)
+
 ## Using the mod
 
 Start by crafting the Facade Applicator.
