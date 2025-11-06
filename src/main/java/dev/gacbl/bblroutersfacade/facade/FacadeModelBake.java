@@ -14,11 +14,15 @@ public class FacadeModelBake {
         for (var key : models.keySet()) {
             if (key instanceof ModelResourceLocation mrl) {
                 String ns = mrl.id().getNamespace();
+                var original = models.get(mrl);
+                if (original == null) continue;
+
                 if ("routers".equals(ns) || "bbl_routers".equals(ns)) {
-                    var original = models.get(mrl);
-                    if (original != null) {
-                        models.put(mrl, FacadeModelWrapper.wrap(original));
-                    }
+                    // This is our router, wrap it with the Facade host wrapper
+                    models.put(mrl, FacadeModelWrapper.wrap(original));
+                } else if ("chipped".equals(ns)) {
+                    // This is a Chipped block, wrap it with the Neighbor wrapper
+                    models.put(mrl, new NeighborModelWrapper(original));
                 }
             }
         }

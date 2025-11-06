@@ -8,22 +8,8 @@ import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
-import org.jetbrains.annotations.NotNull;
 
 public class FacadeConnectionHelper {
-
-    /**
-     * Client-side ModelProperty key to pass the camouflaged BlockState to the underlying model.
-     * This is crucial for connected texture mods like XyCraft that use ModelData to determine connections.
-     */
-    public static final @NotNull ModelProperty<BlockState> FACADE_STATE_PROPERTY = new ModelProperty<>();
-
-    /**
-     * Client-side ModelProperty key to pass the position of the router block to the model wrapper.
-     * This is necessary to correctly calculate neighbor connections in getQuads.
-     */
-    public static final @NotNull ModelProperty<BlockPos> ROUTER_POS_PROPERTY = new ModelProperty<>();
 
     /**
      * Check if a block should connect to a facade in the given direction
@@ -37,7 +23,12 @@ public class FacadeConnectionHelper {
             if (neighborFacade != null) {
                 Block facadeBlock = neighborFacade.getBlock();
 
-                // Check if the blocks should connect
+                // 1. Check for exact block match (handles Chipped and most modded blocks)
+                if (block == facadeBlock) {
+                    return true;
+                }
+
+                // 2. Check for vanilla equivalent types
                 if (block instanceof FenceBlock && facadeBlock instanceof FenceBlock) {
                     return true;
                 }

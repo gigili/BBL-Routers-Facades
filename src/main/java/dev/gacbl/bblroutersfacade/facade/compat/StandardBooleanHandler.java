@@ -30,29 +30,18 @@ public class StandardBooleanHandler implements IConnectionHandler {
 
         // Try the standard vanilla directional boolean property (e.g., 'north')
         BlockState newState = updateGenericBooleanProperty(state, propName, isConnected);
-
         if (newState != state) {
-            // Property found and updated. We need to persist the change.
-            if (!newState.equals(state)) {
-                level.setBlock(neighborPos, newState, 3);
-            }
-            return newState;
+            return newState; // Property found and updated
         }
 
         // If the standard property fails, try common modded names as a last resort
         newState = updateGenericBooleanProperty(state, "c_" + propName, isConnected);
         if (newState != state) {
-            if (!newState.equals(state)) {
-                level.setBlock(neighborPos, newState, 3);
-            }
             return newState;
         }
 
         newState = updateGenericBooleanProperty(state, "connected_" + propName, isConnected);
         if (newState != state) {
-            if (!newState.equals(state)) {
-                level.setBlock(neighborPos, newState, 3);
-            }
             return newState;
         }
 
