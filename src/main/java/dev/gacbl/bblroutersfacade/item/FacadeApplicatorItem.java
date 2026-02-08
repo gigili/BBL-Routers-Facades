@@ -1,6 +1,7 @@
 package dev.gacbl.bblroutersfacade.item;
 
 import dev.gacbl.bblroutersfacade.RouterFacades;
+import dev.gacbl.bblroutersfacade.facade.FacadeAttachments;
 import dev.gacbl.bblroutersfacade.network.FacadePayloads;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -20,6 +21,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -59,6 +61,17 @@ public class FacadeApplicatorItem extends Item {
         boolean sneaking = player.isShiftKeyDown();
         boolean isRouter = isRouterBlock(state);
 
+        // If it's a router, try to get its facade state for picking
+        if (isRouter && !sneaking) {
+            var be = level.getBlockEntity(pos);
+            if (be != null) {
+                BlockState facade = be.getData(FacadeAttachments.FACADE_STATE.get());
+                if (facade != null) {
+                    state = facade;
+                }
+            }
+        }
+
         // Right-click router (sneak) -> APPLY stored pick
         if (isRouter && sneaking) {
             if (level.isClientSide()) {
@@ -68,8 +81,8 @@ public class FacadeApplicatorItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        // Right-click any non-router block (no sneak) -> PICK source
-        if (!sneaking && !isRouter) {
+        // Right-click any non-router block (or router with no sneak) -> PICK source
+        if (!sneaking) {
             var id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             if (id != null) {
                 if (!level.isClientSide()) {
@@ -116,7 +129,7 @@ public class FacadeApplicatorItem extends Item {
 
     private static class ClientSide {
         private static void sendApplyRequest(BlockPos pos, @Nullable BlockState picked) {
-            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new FacadePayloads.FacadeApplyRequest(pos, picked));
+            ClientPacketDistributor.sendToServer(new FacadePayloads.FacadeApplyRequest(pos, picked));
         }
     }
 

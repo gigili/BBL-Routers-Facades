@@ -1,11 +1,15 @@
 package dev.gacbl.bblroutersfacade.facade;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.TriState;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
@@ -16,7 +20,9 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.WallSide;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -31,21 +37,66 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
 
     @Override
     public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockModelPart> parts) {
-        var be = view.getBlockEntity(pos);
-        if (be != null) {
-            var camo = be.getData(FacadeAttachments.FACADE_STATE.get());
-            if (camo != null) {
-                BlockState connectedState = getConnectedState(view, pos, camo);
-                var camoModel = lookup.apply(connectedState);
-                var wrappedView = new FacadeLevelWrapper(view);
+        var data = view.getModelData(pos);
+        var camo = data.get(FacadeConnectionHelper.FACADE_STATE_PROPERTY);
 
-                // Pass the wrapped view to the underlying model's collectParts.
-                // This allows the underlying model to see spoofed neighbors and spoofed ModelData.
-                camoModel.collectParts(wrappedView, pos, connectedState, random, parts);
-                return;
+        // Fallback to BE data if ModelData is empty (shouldn't happen with our wrapper, but good for safety)
+        if (camo == null) {
+            var be = view.getBlockEntity(pos);
+            if (be != null) {
+                camo = be.getData(FacadeAttachments.FACADE_STATE.get());
             }
         }
+
+        if (camo != null) {
+            BlockState connectedState = getConnectedState(view, pos, camo);
+            var camoModel = lookup.apply(connectedState);
+            var wrappedView = view instanceof FacadeLevelWrapper ? view : new FacadeLevelWrapper(view);
+
+            List<BlockModelPart> camoParts = new ArrayList<>();
+            camoModel.collectParts(wrappedView, pos, connectedState, random, camoParts);
+            for (BlockModelPart part : camoParts) {
+                parts.add(new FacadeModelPart(part, connectedState));
+            }
+            return;
+        }
         super.collectParts(view, pos, state, random, parts);
+    }
+
+    private static class FacadeModelPart implements BlockModelPart {
+        private final BlockModelPart parent;
+        private final BlockState camoState;
+
+        public FacadeModelPart(BlockModelPart parent, BlockState camoState) {
+            this.parent = parent;
+            this.camoState = camoState;
+        }
+
+        @Override
+        public List<BakedQuad> getQuads(@Nullable Direction direction) {
+            return parent.getQuads(direction);
+        }
+
+        @Override
+        public boolean useAmbientOcclusion() {
+            return parent.useAmbientOcclusion();
+        }
+
+        @Override
+        public TextureAtlasSprite particleIcon() {
+            return parent.particleIcon();
+        }
+
+        @Override
+        public ChunkSectionLayer getRenderType(BlockState state) {
+            // Redirect to use the camo state instead of the host state (Router)
+            return parent.getRenderType(camoState);
+        }
+
+        @Override
+        public TriState ambientOcclusion() {
+            return parent.ambientOcclusion();
+        }
     }
 
     private BlockState getConnectedState(BlockAndTintGetter level, BlockPos pos, BlockState camoState) {

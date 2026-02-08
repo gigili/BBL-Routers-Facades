@@ -20,7 +20,10 @@ public final class FacadeColorForwarder {
         BlockColors colors = e.getBlockColors();
 
         List<Block> routerBlocks = BuiltInRegistries.BLOCK.stream()
-                .filter(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().equals(RouterFacades.TARGET_NS))
+                .filter(b -> {
+                    String ns = BuiltInRegistries.BLOCK.getKey(b).getNamespace();
+                    return ns.equals("routers") || ns.equals("bbl_routers");
+                })
                 .toList();
 
         if (routerBlocks.isEmpty()) return;

@@ -50,9 +50,10 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
         BlockState spoofedState = getSpoofedBlockState(pos);
 
         if (!spoofedState.equals(originalState)) {
-            // For spoofed positions, provide model data that matches the spoofed block
-            // In 1.21.11, BlockEntity has its own getModelData
-            return ModelData.EMPTY;
+            // Provide model data that matches the spoofed block
+            return ModelData.builder()
+                    .with(FacadeConnectionHelper.FACADE_STATE_PROPERTY, spoofedState)
+                    .build();
         }
 
         return delegate.getModelData(pos);

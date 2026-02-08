@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -52,14 +52,26 @@ public final class FacadeOps {
      * adjacent facade blocks to update their model data (client-side re-render).
      */
     private static void updateNearbyBlocks(ServerLevel level, BlockPos centerPos) {
-        Block centerBlock = level.getBlockState(centerPos).getBlock();
+        BlockState centerState = level.getBlockState(centerPos);
+        BlockEntity centerBe = level.getBlockEntity(centerPos);
+        BlockState facadeState = centerBe != null ? centerBe.getData(FacadeAttachments.FACADE_STATE.get()) : null;
+
+        // Use facade state if present, otherwise use real block state (for clearing)
+        BlockState effectiveState = facadeState != null ? facadeState : centerState;
 
         // 1. Force state recalculation for direct neighbors (vanilla blocks like fences/walls)
         for (Direction direction : Direction.values()) {
             BlockPos neighborPos = centerPos.relative(direction);
-            // This is the server-side method that forces the block at neighborPos to call its Block.neighborChanged
-            // method, which is what recalculates the connection properties (like NORTH=true/false).
-            level.neighborChanged(neighborPos, centerBlock, null);
+            BlockState neighborState = level.getBlockState(neighborPos);
+
+            // Trigger updateShape on the neighbor
+            BlockState updatedState = neighborState.updateShape(level, level, neighborPos, direction.getOpposite(), centerPos, effectiveState, level.getRandom());
+            if (updatedState != neighborState) {
+                level.setBlock(neighborPos, updatedState, 3);
+            }
+
+            // Notify neighbors of the neighbor as well, to ensure everything updates
+            level.neighborChanged(neighborPos, effectiveState.getBlock(), null);
         }
 
         // 2. Force client-side re-render/model data update for a 3x3x3 area, mainly targeting adjacent facades.
