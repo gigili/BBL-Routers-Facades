@@ -70,12 +70,10 @@ public class FacadeConnectionHelper {
         if (block instanceof FenceBlock) {
             vanillaConnection = neighborBlock instanceof FenceBlock ||
                     neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite());
-        }
-        else if (block instanceof IronBarsBlock) {
+        } else if (block instanceof IronBarsBlock) {
             vanillaConnection = neighborBlock instanceof IronBarsBlock ||
                     neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite());
-        }
-        else if (block instanceof WallBlock) {
+        } else if (block instanceof WallBlock) {
             vanillaConnection = neighborBlock instanceof WallBlock ||
                     neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite());
         }

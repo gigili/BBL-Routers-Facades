@@ -27,28 +27,28 @@ public final class FacadeHighlighter {
             return;
 
         PoseStack pose = e.getPoseStack();
-        Vec3 cam = mc.getEntityRenderDispatcher().camera.position();
         var buffers = mc.renderBuffers().bufferSource();
         VertexConsumer lines = buffers.getBuffer(RenderTypes.lines());
+        Vec3 cam = e.getLevelRenderState().cameraRenderState.pos;
 
         pose.pushPose();
 
-        int r = 32;
+        int r = 16;
         BlockPos c = mc.player.blockPosition();
+        var box = new AABB(0, 0, 0, 1, 1, 1).inflate(0.002);
+        var shape = Shapes.create(box);
+
         BlockPos.betweenClosedStream(c.offset(-r, -r, -r), c.offset(r, r, r)).forEach(p -> {
             var be = mc.level.getBlockEntity(p);
             if (be == null) return;
             if (be.getData(FacadeAttachments.FACADE_STATE.get()) == null) return;
 
-            pose.pushPose();
-            pose.translate(p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z);
-            var box = new AABB(0, 0, 0, 1, 1, 1).inflate(0.002);
-            ShapeRenderer.renderShape(pose, lines, Shapes.create(box), 0, 0, 0, 0x3399FF, 1.0f);
-            pose.popPose();
+            ShapeRenderer.renderShape(pose, lines, shape,
+                    p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z,
+                    0xFF3399FF, 2.5f);
         });
 
         pose.popPose();
-        buffers.endBatch(RenderTypes.lines());
     }
 
     private static boolean isHoldingApplicator(ItemStack stack) {

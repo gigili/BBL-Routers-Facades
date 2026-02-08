@@ -28,7 +28,7 @@ public final class ClientHandlers {
     private static void updateNeighborModels(Minecraft mc, BlockPos pos) {
         for (Direction direction : Direction.values()) {
             BlockPos neighborPos = pos.relative(direction);
-            if(mc.level != null) {
+            if (mc.level != null) {
                 var neighborBe = mc.level.getBlockEntity(neighborPos);
                 if (neighborBe != null) {
                     neighborBe.requestModelDataUpdate();

@@ -20,7 +20,10 @@ public final class FacadeAttachments {
                             .build()
             );
 
-    public static void register(IEventBus modBus) { ATTACHMENT_TYPES.register(modBus); }
+    public static void register(IEventBus modBus) {
+        ATTACHMENT_TYPES.register(modBus);
+    }
 
-    private FacadeAttachments() {}
+    private FacadeAttachments() {
+    }
 }
