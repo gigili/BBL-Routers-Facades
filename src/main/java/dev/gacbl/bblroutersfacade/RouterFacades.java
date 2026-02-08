@@ -3,6 +3,7 @@ package dev.gacbl.bblroutersfacade;
 import dev.gacbl.bblroutersfacade.facade.FacadeAttachments;
 import dev.gacbl.bblroutersfacade.item.ModCreativeModTabs;
 import dev.gacbl.bblroutersfacade.item.ModItems;
+import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -37,5 +38,9 @@ public class RouterFacades {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
         }
+    }
+
+    public static Identifier identifier(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }

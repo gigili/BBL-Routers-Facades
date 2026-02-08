@@ -1,45 +1,50 @@
 package dev.gacbl.bblroutersfacade.item;
 
 import dev.gacbl.bblroutersfacade.RouterFacades;
-import dev.gacbl.bblroutersfacade.facade.FacadeOps;
-import net.minecraft.Util;
+import dev.gacbl.bblroutersfacade.network.FacadePayloads;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Util;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class FacadeApplicatorItem extends Item {
     private static final String TAG_STATE = "picked_state";
 
 
-    public FacadeApplicatorItem(Properties props) { super(props); }
+    public FacadeApplicatorItem(Properties props) {
+        super(props.stacksTo(1));
+    }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(Level level, Player player, @NotNull InteractionHand hand) {
+    public @NonNull InteractionResult use(Level level, Player player, @NonNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             clearPicked(stack);
             player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_picked_facade"), true);
+            return InteractionResult.CONSUME;
         }
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+
+        return super.use(level, player, hand);
     }
 
     @Override
@@ -56,32 +61,23 @@ public class FacadeApplicatorItem extends Item {
 
         // Right-click router (sneak) -> APPLY stored pick
         if (isRouter && sneaking) {
-            BlockState picked = getPickedState(stack);
-            if (picked == null) {
-                if (!level.isClientSide) {
-                    FacadeOps.clear(level, pos);
-                    player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_facade"), true);
-                }
-                return InteractionResult.sidedSuccess(level.isClientSide);
+            if (level.isClientSide()) {
+                BlockState picked = getPickedState(stack);
+                ClientSide.sendApplyRequest(pos, picked);
             }
-            if (!level.isClientSide) {
-                FacadeOps.apply(level, pos, picked);
-                var key = stack.getItem().getDescriptionId();
-                player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.applied_facade", Component.translatable(key)), true);
-            }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
 
         // Right-click any non-router block (no sneak) -> PICK source
         if (!sneaking && !isRouter) {
             var id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
             if (id != null) {
-                if (!level.isClientSide) {
+                if (!level.isClientSide()) {
                     setPickedState(stack, state);
                     var key = Util.makeDescriptionId("block", id);
                     player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.picked_facade", Component.translatable(key)), true);
                 }
-                return InteractionResult.sidedSuccess(level.isClientSide);
+                return InteractionResult.SUCCESS;
             }
         }
 
@@ -89,7 +85,7 @@ public class FacadeApplicatorItem extends Item {
     }
 
 
-    private static boolean isRouterBlock(BlockState s) {
+    public static boolean isRouterBlock(BlockState s) {
         var key = BuiltInRegistries.BLOCK.getKey(s.getBlock());
         return RouterFacades.TARGET_NS.equals(key.getNamespace());
     }
@@ -118,11 +114,17 @@ public class FacadeApplicatorItem extends Item {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(root));
     }
 
+    private static class ClientSide {
+        private static void sendApplyRequest(BlockPos pos, @Nullable BlockState picked) {
+            net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new FacadePayloads.FacadeApplyRequest(pos, picked));
+        }
+    }
+
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context, @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.bblroutersfacade.facade_applicator.right_click"));
-        tooltipComponents.add(Component.translatable("item.bblroutersfacade.facade_applicator.shift_right_click"));
-        tooltipComponents.add(Component.translatable("item.bblroutersfacade.facade_applicator.right_click_air"));
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(@NonNull ItemStack stack, @NonNull TooltipContext context, @NonNull TooltipDisplay tooltipDisplay, Consumer<Component> tooltipAdder, @NonNull TooltipFlag flag) {
+        tooltipAdder.accept(Component.translatable("item.bblroutersfacade.facade_applicator.right_click"));
+        tooltipAdder.accept(Component.translatable("item.bblroutersfacade.facade_applicator.shift_right_click"));
+        tooltipAdder.accept(Component.translatable("item.bblroutersfacade.facade_applicator.right_click_air"));
+        super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
     }
 }

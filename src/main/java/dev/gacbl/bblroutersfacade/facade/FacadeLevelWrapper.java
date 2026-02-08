@@ -1,17 +1,14 @@
 package dev.gacbl.bblroutersfacade.facade;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,31 +29,15 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
 
     @Override
     public @NotNull BlockState getBlockState(@NotNull BlockPos pos) {
-        BlockState originalState = delegate.getBlockState(pos);
-        BlockState spoofedState = getSpoofedBlockState(pos);
-
-        if (!spoofedState.equals(originalState)) {
-            //System.out.println("Fusion checking " + pos + ":");
-            //System.out.println("  Original: " + originalState);
-            //System.out.println("  Spoofed: " + spoofedState);
-
-            // Check if this is a facade block entity
-            BlockEntity be = delegate.getBlockEntity(pos);
-            if (be != null) {
-                //System.out.println("  BlockEntity: " + be.getClass().getName());
-                BlockState facadeState = be.getData(FacadeAttachments.FACADE_STATE.get());
-                //System.out.println("  Facade state: " + facadeState);
-            }
-        }
-
-        return spoofedState;
+        return getSpoofedBlockState(pos);
     }
 
     @Override
     public @Nullable BlockEntity getBlockEntity(@NotNull BlockPos pos) {
         // Also check if this position should be spoofed
+        BlockState originalState = delegate.getBlockState(pos);
         BlockState spoofedState = getSpoofedBlockState(pos);
-        if (spoofedState != delegate.getBlockState(pos)) {
+        if (!spoofedState.equals(originalState)) {
             // If we're spoofing this block, return null for BlockEntity to prevent conflicts
             return null;
         }
@@ -65,22 +46,13 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
 
     @Override
     public @NotNull ModelData getModelData(@NotNull BlockPos pos) {
-        BlockState spoofedState = getSpoofedBlockState(pos);
         BlockState originalState = delegate.getBlockState(pos);
+        BlockState spoofedState = getSpoofedBlockState(pos);
 
         if (!spoofedState.equals(originalState)) {
             // For spoofed positions, provide model data that matches the spoofed block
-            ModelData originalData = delegate.getModelData(pos);
-
-            // Try to get model data for the spoofed block
-            BakedModel spoofedModel = Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(spoofedState);
-            if (spoofedModel != null) {
-                ModelData spoofedData = spoofedModel.getModelData(this, pos, spoofedState, ModelData.EMPTY);
-                //System.out.println("Providing spoofed model data for " + pos);
-                return spoofedData;
-            }
-
-            return originalData;
+            // In 1.21.11, BlockEntity has its own getModelData
+            return ModelData.EMPTY;
         }
 
         return delegate.getModelData(pos);
@@ -94,23 +66,6 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
                 return facadeState;
             }
         }
-
-        // TEMPORARY: For testing, spoof all positions around our facades as Connected Glass
-        // This will help determine if the issue is with neighbor detection
-        BlockPos[] facadePositions = {new BlockPos(0, 58, -9), new BlockPos(0, 57, -9)}; // Your facade positions
-        for (BlockPos facadePos : facadePositions) {
-            if (pos.closerThan(facadePos, 2)) { // Within 2 blocks of a facade
-                BlockEntity facadeBe = delegate.getBlockEntity(facadePos);
-                if (facadeBe != null) {
-                    BlockState neighborFacade = facadeBe.getData(FacadeAttachments.FACADE_STATE.get());
-                    if (neighborFacade != null && "connectedglass".equals(BuiltInRegistries.BLOCK.getKey(neighborFacade.getBlock()).getNamespace())) {
-                        //System.out.println("TEMP: Spoofing neighbor " + pos + " as Connected Glass for testing");
-                        return neighborFacade;
-                    }
-                }
-            }
-        }
-
         return delegate.getBlockState(pos);
     }
 
@@ -145,7 +100,7 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
     }
 
     @Override
-    public int getMinBuildHeight() {
-        return delegate.getMinBuildHeight();
+    public int getMinY() {
+        return delegate.getMinY();
     }
 }

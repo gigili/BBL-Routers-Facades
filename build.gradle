@@ -89,13 +89,8 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
-        data {
-            data()
-
-            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-            // gameDirectory = project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+        clientData {
+            clientData()
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
 
@@ -141,30 +136,34 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    //compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    //compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    implementation "maven.modrinth:jade:${jade_version}"
+    implementation "curse.maven:jade-324717:7313008"
 
-    runtimeOnly "maven.modrinth:bbl-routers:1.21.1-1.0.23"
-    compileOnly "maven.modrinth:bbl-routers:1.21.1-1.0.23"
+    runtimeOnly "curse.maven:bbl-core-1135181:7541641"
+    compileOnly "curse.maven:bbl-core-1135181:7541641"
+
+    runtimeOnly "curse.maven:bbl-routers-1334500:7546175"
+    compileOnly "curse.maven:bbl-routers-1334500:7546175"
+
 
     //name-projectID:fileID
-    runtimeOnly "curse.maven:xycraft-653786:6872525"
-    runtimeOnly "curse.maven:xycraft-world-653789:6872532"
+    //runtimeOnly "curse.maven:xycraft-653786:6872525"
+    //runtimeOnly "curse.maven:xycraft-world-653789:6872532"
 
-    runtimeOnly "curse.maven:ctm-267602:5587515"
-    runtimeOnly "curse.maven:fusion-854949:7058347"
-    runtimeOnly "curse.maven:smjnlib-454372:6076757"
-    runtimeOnly "curse.maven:smjnconfiglib-438332:5546996"
-    runtimeOnly "curse.maven:ctg-383129:6811960"
+    //runtimeOnly "curse.maven:ctm-267602:5587515"
+    runtimeOnly "curse.maven:fusion-854949:7464745"
+    runtimeOnly "curse.maven:smjnlib-454372:7522042"
+    runtimeOnly "curse.maven:smjnconfiglib-438332:7376963"
+    runtimeOnly "curse.maven:ctg-383129:7394727"
 
-    runtimeOnly "curse.maven:resourcefullib-570073:5973188"
-    runtimeOnly "curse.maven:athena-841890:6669522"
-    runtimeOnly "curse.maven:chipped-456956:5813117"
+    runtimeOnly "curse.maven:resourcefullib-570073:7312675"
+    //runtimeOnly "curse.maven:athena-841890:6669522"
+    //runtimeOnly "curse.maven:chipped-456956:5813117"
 
-    runtimeOnly "curse.maven:rechiseled-558998:5663514"
+    runtimeOnly "curse.maven:rechiseled-558998:7589683"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

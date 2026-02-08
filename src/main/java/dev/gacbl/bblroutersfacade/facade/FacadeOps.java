@@ -59,7 +59,7 @@ public final class FacadeOps {
             BlockPos neighborPos = centerPos.relative(direction);
             // This is the server-side method that forces the block at neighborPos to call its Block.neighborChanged
             // method, which is what recalculates the connection properties (like NORTH=true/false).
-            level.blockUpdated(neighborPos, centerBlock);
+            level.neighborChanged(neighborPos, centerBlock, null);
         }
 
         // 2. Force client-side re-render/model data update for a 3x3x3 area, mainly targeting adjacent facades.

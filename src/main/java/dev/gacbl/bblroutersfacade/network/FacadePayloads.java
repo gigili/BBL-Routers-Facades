@@ -7,7 +7,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -20,7 +20,7 @@ public final class FacadePayloads {
     public record FacadeRefresh(BlockPos pos, @Nullable BlockState state) implements CustomPacketPayload {
 
         public static final Type<FacadeRefresh> TYPE =
-                new Type<>(ResourceLocation.fromNamespaceAndPath(RouterFacades.MOD_ID, "facade_refresh"));
+                new Type<>(Identifier.fromNamespaceAndPath(RouterFacades.MOD_ID, "facade_refresh"));
 
         public static final StreamCodec<FriendlyByteBuf, FacadeRefresh> STREAM_CODEC =
                 StreamCodec.of(
@@ -51,6 +51,39 @@ public final class FacadePayloads {
 
     @SubscribeEvent
     public static void register(RegisterPayloadHandlersEvent e) {
-        e.registrar(RouterFacades.MOD_ID).playToClient(FacadeRefresh.TYPE, FacadeRefresh.STREAM_CODEC, (msg, ctx) -> ClientHandlers.handleRefresh(msg));
+        e.registrar(RouterFacades.MOD_ID)
+                .playToClient(FacadeRefresh.TYPE, FacadeRefresh.STREAM_CODEC, (msg, ctx) -> ClientHandlers.handleRefresh(msg))
+                .playToServer(FacadeApplyRequest.TYPE, FacadeApplyRequest.STREAM_CODEC, (msg, ctx) -> ServerHandlers.handleApplyRequest(msg, ctx));
+    }
+
+    public record FacadeApplyRequest(BlockPos pos, @Nullable BlockState state) implements CustomPacketPayload {
+        public static final Type<FacadeApplyRequest> TYPE =
+                new Type<>(Identifier.fromNamespaceAndPath(RouterFacades.MOD_ID, "facade_apply_request"));
+
+        public static final StreamCodec<FriendlyByteBuf, FacadeApplyRequest> STREAM_CODEC =
+                StreamCodec.of(
+                        (buf, m) -> {
+                            buf.writeBlockPos(m.pos());
+                            buf.writeBoolean(m.state() != null);
+                            if (m.state() != null) {
+                                var tag = (CompoundTag) BlockState.CODEC.encodeStart(NbtOps.INSTANCE, m.state()).getOrThrow();
+                                buf.writeNbt(tag);
+                            }
+                        },
+                        buf -> {
+                            var p = buf.readBlockPos();
+                            BlockState st = null;
+                            if (buf.readBoolean()) {
+                                var t = buf.readNbt();
+                                st = BlockState.CODEC.parse(NbtOps.INSTANCE, t).result().orElse(null);
+                            }
+                            return new FacadeApplyRequest(p, st);
+                        }
+                );
+
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "misc",
+  "key": {
+	"G": "#c:glass_blocks",
+	"I": "#c:ingots/iron",
+	"S": "#c:rods/wooden"
+  },
+  "pattern": [
+	" G ",
+	"ISI",
+	" S "
+  ],
+  "result": {
+	"count": 1,
+	"id": "bblroutersfacade:facade_applicator"
+  }
+}

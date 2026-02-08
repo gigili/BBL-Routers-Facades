@@ -16,7 +16,7 @@ public final class FacadeAttachments {
     public static final Supplier<AttachmentType<BlockState>> FACADE_STATE =
             ATTACHMENT_TYPES.register("facade_state", () ->
                     AttachmentType.<BlockState>builder(() -> null)
-                            .serialize(BlockState.CODEC, s -> s != null)
+                            .serialize(BlockState.CODEC.fieldOf("state"), s -> s != null)
                             .build()
             );
 

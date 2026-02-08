@@ -1,11 +1,8 @@
 package dev.gacbl.bblroutersfacade.facade;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.BlockModelShaper;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -17,74 +14,38 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.WallSide;
-import net.neoforged.neoforge.client.ChunkRenderTypeSet;
-import net.neoforged.neoforge.client.model.BakedModelWrapper;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
-    private final Function<BlockState, BakedModel> lookup;
 
-    public FacadeModelWrapper(BakedModel original, Function<BlockState, BakedModel> lookup) {
+public class FacadeModelWrapper extends DelegateBlockStateModel {
+    private final Function<BlockState, BlockStateModel> lookup;
+
+    public FacadeModelWrapper(BlockStateModel original, Function<BlockState, BlockStateModel> lookup) {
         super(original);
         this.lookup = lookup;
     }
 
     @Override
-    public @NotNull ModelData getModelData(BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull ModelData existing) {
+    public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockModelPart> parts) {
         var be = view.getBlockEntity(pos);
         if (be != null) {
             var camo = be.getData(FacadeAttachments.FACADE_STATE.get());
             if (camo != null) {
-                var camoModel = lookup.apply(camo);
-                var wrappedView = new FacadeLevelWrapper(view);
-                // 1. Calculate and retrieve the camo block's ModelData using the wrapped world view (CRITICAL for CTM)
-                var camoData = camoModel.getModelData(wrappedView, pos, camo, ModelData.EMPTY);
                 BlockState connectedState = getConnectedState(view, pos, camo);
+                var camoModel = lookup.apply(connectedState);
+                var wrappedView = new FacadeLevelWrapper(view);
 
-                // Store all necessary data
-                return existing.derive()
-                        .with(FacadeModelData.FACADE, connectedState)
-                        .with(FacadeModelData.CAMO_MODEL_DATA, camoData)
-                        .with(FacadeConnectionHelper.ROUTER_POS_PROPERTY, pos)
-                        .build();
+                // Pass the wrapped view to the underlying model's collectParts.
+                // This allows the underlying model to see spoofed neighbors and spoofed ModelData.
+                camoModel.collectParts(wrappedView, pos, connectedState, random, parts);
+                return;
             }
         }
-        return existing;
-    }
-
-    @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, ModelData data, @Nullable RenderType layer) {
-        var camo = data.get(FacadeModelData.FACADE);
-        var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
-
-        if (camo != null) {
-            var model = lookup.apply(camo);
-            // Pass the stored ModelData to the underlying model (CRITICAL for CTM/Fusion)
-            var modelData = camoData != null ? camoData : ModelData.EMPTY;
-
-            // We rely on the underlying CTM/Fusion model to correctly suppress the quad,
-            // now that both models are correctly wrapped and receiving spoofed data.
-            return model.getQuads(camo, side, rand, modelData, layer);
-        }
-        return super.getQuads(state, side, rand, data, layer);
-    }
-
-    @Override
-    public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, ModelData data) {
-        var camo = data.get(FacadeModelData.FACADE);
-        var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
-
-        if (camo != null) {
-            var model = lookup.apply(camo);
-            var modelData = camoData != null ? camoData : ModelData.EMPTY;
-            return model.getRenderTypes(camo, rand, modelData);
-        }
-        return super.getRenderTypes(state, rand, data);
+        super.collectParts(view, pos, state, random, parts);
     }
 
     private BlockState getConnectedState(BlockAndTintGetter level, BlockPos pos, BlockState camoState) {
@@ -167,12 +128,11 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
         return FacadeConnectionHelper.getConnectionState(level, pos, direction, block);
     }
 
-    private static BakedModel bakedFor(BlockState s) {
-        ModelResourceLocation mrl = BlockModelShaper.stateToModelLocation(s);
-        return Minecraft.getInstance().getModelManager().getModel(mrl);
+    private static BlockStateModel bakedFor(BlockState s) {
+        return Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(s);
     }
 
-    public static FacadeModelWrapper wrap(BakedModel original) {
+    public static FacadeModelWrapper wrap(BlockStateModel original) {
         return new FacadeModelWrapper(original, FacadeModelWrapper::bakedFor);
     }
 }

@@ -19,7 +19,7 @@ public class FacadeBlockUpdater {
     @SubscribeEvent
     public static void onBlockUpdate(BlockEvent.NeighborNotifyEvent event) {
         Level level = (Level) event.getLevel();
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         BlockPos pos = event.getPos();
         BlockState state = event.getState();
@@ -76,10 +76,10 @@ public class FacadeBlockUpdater {
 
     private static Property<WallSide> getHorizontalWallProperty(Direction direction) {
         return switch (direction) {
-            case NORTH -> WallBlock.NORTH_WALL;
-            case SOUTH -> WallBlock.SOUTH_WALL;
-            case EAST -> WallBlock.EAST_WALL;
-            case WEST -> WallBlock.WEST_WALL;
+            case NORTH -> WallBlock.NORTH;
+            case SOUTH -> WallBlock.SOUTH;
+            case EAST -> WallBlock.EAST;
+            case WEST -> WallBlock.WEST;
             default -> throw new IllegalArgumentException("Invalid horizontal direction: " + direction);
         };
     }
