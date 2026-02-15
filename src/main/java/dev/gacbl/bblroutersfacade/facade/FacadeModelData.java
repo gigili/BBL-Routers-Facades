@@ -7,4 +7,5 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
 public class FacadeModelData {
     public static final ModelProperty<BlockState> FACADE = new ModelProperty<>();
     public static final ModelProperty<ModelData> CAMO_MODEL_DATA = new ModelProperty<>();
+    public static final ModelProperty<Boolean> WRENCH_NEARBY = new ModelProperty<>();
 }

@@ -1,6 +1,8 @@
 package dev.gacbl.bblroutersfacade.facade;
 
+import dev.gacbl.bblroutersfacade.item.ModItems;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -23,6 +25,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -46,26 +49,63 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
                 var camoData = camoModel.getModelData(wrappedView, pos, camo, ModelData.EMPTY);
                 BlockState connectedState = getConnectedState(view, pos, camo);
 
+                boolean wrenchNearby = isWrenchNearby(view, pos);
+
                 // Store all necessary data
                 return existing.derive()
                         .with(FacadeModelData.FACADE, connectedState)
                         .with(FacadeModelData.CAMO_MODEL_DATA, camoData)
                         .with(FacadeConnectionHelper.ROUTER_POS_PROPERTY, pos)
+                        .with(FacadeModelData.WRENCH_NEARBY, wrenchNearby)
                         .build();
             }
         }
         return existing;
     }
 
+    private boolean isWrenchNearby(BlockAndTintGetter level, BlockPos pos) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return false;
+        if (!isHoldingApplicator(player)) return false;
+
+        double distSq = player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        return distSq <= 144; // 12 blocks range
+    }
+
+    private boolean isHoldingApplicator(LocalPlayer player) {
+        return player.getMainHandItem().is(ModItems.FACADE_APPLICATOR.get()) ||
+                player.getOffhandItem().is(ModItems.FACADE_APPLICATOR.get());
+    }
+
     @Override
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource rand, ModelData data, @Nullable RenderType layer) {
         var camo = data.get(FacadeModelData.FACADE);
         var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
+        Boolean wrenchNearby = data.get(FacadeModelData.WRENCH_NEARBY);
 
         if (camo != null) {
             var model = lookup.apply(camo);
             // Pass the stored ModelData to the underlying model (CRITICAL for CTM/Fusion)
             var modelData = camoData != null ? camoData : ModelData.EMPTY;
+
+            if (wrenchNearby != null && wrenchNearby) {
+                if (layer == RenderType.translucent()) {
+                    List<BakedQuad> quads = model.getQuads(camo, side, rand, modelData, layer);
+                    if (quads.isEmpty()) {
+                        // If it doesn't normally render in translucent, try getting its default quads
+                        quads = model.getQuads(camo, side, rand, modelData, null);
+                    }
+                    if (quads.isEmpty()) return quads;
+
+                    List<BakedQuad> translucentQuads = new ArrayList<>();
+                    for (BakedQuad quad : quads) {
+                        translucentQuads.add(withAlpha(quad, 0.5f));
+                    }
+                    return translucentQuads;
+                }
+                // Also render original router model so it's visible "under" the facade
+                return super.getQuads(state, side, rand, data, layer);
+            }
 
             // We rely on the underlying CTM/Fusion model to correctly suppress the quad,
             // now that both models are correctly wrapped and receiving spoofed data.
@@ -74,14 +114,31 @@ public class FacadeModelWrapper extends BakedModelWrapper<BakedModel> {
         return super.getQuads(state, side, rand, data, layer);
     }
 
+    private BakedQuad withAlpha(BakedQuad quad, float alpha) {
+        int[] vertices = quad.getVertices().clone();
+        int alphaInt = (int) (alpha * 255) << 24;
+        for (int i = 0; i < 4; i++) {
+            int offset = i * 8 + 3; // 3 is the color offset in the default vertex format
+            vertices[offset] = (vertices[offset] & 0x00FFFFFF) | alphaInt;
+        }
+        return new BakedQuad(vertices, quad.getTintIndex(), quad.getDirection(), quad.getSprite(), quad.isShade(), quad.isTinted());
+    }
+
     @Override
     public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource rand, ModelData data) {
         var camo = data.get(FacadeModelData.FACADE);
         var camoData = data.get(FacadeModelData.CAMO_MODEL_DATA);
+        Boolean wrenchNearby = data.get(FacadeModelData.WRENCH_NEARBY);
 
         if (camo != null) {
             var model = lookup.apply(camo);
             var modelData = camoData != null ? camoData : ModelData.EMPTY;
+
+            if (wrenchNearby != null && wrenchNearby) {
+                ChunkRenderTypeSet originalTypes = super.getRenderTypes(state, rand, data);
+                return ChunkRenderTypeSet.union(originalTypes, ChunkRenderTypeSet.of(RenderType.translucent()));
+            }
+            
             return model.getRenderTypes(camo, rand, modelData);
         }
         return super.getRenderTypes(state, rand, data);
