@@ -1,5 +1,6 @@
 package dev.gacbl.bblroutersfacade.facade;
 
+import dev.gacbl.bblroutersfacade.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
@@ -10,6 +11,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TriState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
@@ -19,8 +22,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.WallSide;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
+import net.neoforged.neoforge.client.model.quad.BakedColors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +34,8 @@ import java.util.function.Function;
 
 public class FacadeModelWrapper extends DelegateBlockStateModel {
     private final Function<BlockState, BlockStateModel> lookup;
+    public static final int RENDER_RANGE = 12;
+    public static final int RENDER_RANGE_SQ = RENDER_RANGE * RENDER_RANGE;
 
     public FacadeModelWrapper(BlockStateModel original, Function<BlockState, BlockStateModel> lookup) {
         super(original);
@@ -49,6 +56,10 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
         }
 
         if (camo != null) {
+            Player player = Minecraft.getInstance().player;
+            boolean wrench = player != null && (isHoldingWrench(player.getMainHandItem()) || isHoldingWrench(player.getOffhandItem()));
+            boolean nearby = wrench && player.blockPosition().distSqr(pos) < RENDER_RANGE_SQ;
+
             BlockState connectedState = getConnectedState(view, pos, camo);
             var camoModel = lookup.apply(connectedState);
             var wrappedView = view instanceof FacadeLevelWrapper ? view : new FacadeLevelWrapper(view);
@@ -56,25 +67,64 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
             List<BlockModelPart> camoParts = new ArrayList<>();
             camoModel.collectParts(wrappedView, pos, connectedState, random, camoParts);
             for (BlockModelPart part : camoParts) {
-                parts.add(new FacadeModelPart(part, connectedState));
+                parts.add(new FacadeModelPart(part, connectedState, nearby));
+            }
+
+            if (nearby) {
+                super.collectParts(view, pos, state, random, parts);
             }
             return;
         }
         super.collectParts(view, pos, state, random, parts);
     }
 
+    private static boolean isHoldingWrench(ItemStack stack) {
+        return stack.is(ModItems.FACADE_APPLICATOR.get());
+    }
+
     private static class FacadeModelPart implements BlockModelPart {
         private final BlockModelPart parent;
         private final BlockState camoState;
+        private final boolean translucent;
 
-        public FacadeModelPart(BlockModelPart parent, BlockState camoState) {
+        public FacadeModelPart(BlockModelPart parent, BlockState camoState, boolean translucent) {
             this.parent = parent;
             this.camoState = camoState;
+            this.translucent = translucent;
         }
 
         @Override
-        public List<BakedQuad> getQuads(@Nullable Direction direction) {
-            return parent.getQuads(direction);
+        public @NonNull List<BakedQuad> getQuads(@Nullable Direction direction) {
+            List<BakedQuad> quads = parent.getQuads(direction);
+            if (translucent) {
+                List<BakedQuad> modified = new ArrayList<>(quads.size());
+                for (BakedQuad quad : quads) {
+                    modified.add(withAlpha(quad));
+                }
+                return modified;
+            }
+            return quads;
+        }
+
+        private BakedQuad withAlpha(BakedQuad quad) {
+            BakedColors colors = quad.bakedColors();
+            BakedColors newColors = BakedColors.of(
+                    setAlpha(colors.color(0)),
+                    setAlpha(colors.color(1)),
+                    setAlpha(colors.color(2)),
+                    setAlpha(colors.color(3))
+            );
+
+            return new BakedQuad(
+                    quad.position0(), quad.position1(), quad.position2(), quad.position3(),
+                    quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
+                    quad.tintIndex(), quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission(),
+                    quad.bakedNormals(), newColors, quad.hasAmbientOcclusion()
+            );
+        }
+
+        private int setAlpha(int color) {
+            return (color & 0x00FFFFFF) | (0x7F << 24);
         }
 
         @Override
@@ -83,18 +133,21 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
         }
 
         @Override
-        public TextureAtlasSprite particleIcon() {
+        public @NonNull TextureAtlasSprite particleIcon() {
             return parent.particleIcon();
         }
 
         @Override
-        public ChunkSectionLayer getRenderType(BlockState state) {
+        public @NonNull ChunkSectionLayer getRenderType(@NonNull BlockState state) {
+            if (translucent) {
+                return ChunkSectionLayer.TRANSLUCENT;
+            }
             // Redirect to use the camo state instead of the host state (Router)
             return parent.getRenderType(camoState);
         }
 
         @Override
-        public TriState ambientOcclusion() {
+        public @NonNull TriState ambientOcclusion() {
             return parent.ambientOcclusion();
         }
     }

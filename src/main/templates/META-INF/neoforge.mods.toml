@@ -77,6 +77,13 @@ modId="routers"
 type="required"
 versionRange="[1.0.0,)"
 ordering="AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "bblcore"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
 side="BOTH"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
