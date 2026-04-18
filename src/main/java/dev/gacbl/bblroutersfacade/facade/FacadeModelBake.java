@@ -27,7 +27,7 @@ public class FacadeModelBake {
             if ("routers".equals(ns) || "bbl_routers".equals(ns)) {
                 // Our router block (Facade host)
                 entry.setValue(FacadeModelWrapper.wrap(original));
-            } else if ("chipped".equals(ns) || "rechiseled".equals(ns) || "connectedglass".equals(ns)) {
+            } else { // if ("chipped".equals(ns) || "rechiseled".equals(ns) || "connectedglass".equals(ns) || "".equals(ns)) {
                 // CRITICAL FIX: Wrap Connected Glass models with NeighborModelWrapper
                 // This allows them to see the facade as a connected block.
                 entry.setValue(new NeighborModelWrapper(original));

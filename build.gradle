@@ -39,6 +39,10 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 neoForge {
     // Specify the version of NeoForge to use.
     version = project.neo_version
@@ -134,7 +138,7 @@ dependencies {
     //compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     //compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     //JEI
-    //implementation("mezz.jei:jei-${jei_mc_version}-neoforge:${jei_version}")
+    implementation("mezz.jei:jei-${jei_mc_version}-neoforge:${jei_version}")
 
     implementation "curse.maven:jade-324717:7938398"
 
@@ -146,23 +150,24 @@ dependencies {
 
 
     //name-projectID:fileID
-    runtimeOnly "curse.maven:contextmatters-1265417:7808075"
-    runtimeOnly "curse.maven:pipematters-1494073:7808084"
-    runtimeOnly "curse.maven:volumetrics-1240222:7806225"
-    runtimeOnly "curse.maven:xycraft-653786:7808135"
-    runtimeOnly "curse.maven:xycraft-world-653789:7808144"
+    localRuntime "curse.maven:contextmatters-1265417:7808075"
+    localRuntime "curse.maven:pipematters-1494073:7808084"
+    localRuntime "curse.maven:volumetrics-1240222:7806225"
+    localRuntime "curse.maven:xycraft-653786:7808135"
+    localRuntime "curse.maven:xycraft-world-653789:7808144"
 
-    //runtimeOnly "curse.maven:ctm-267602:5587515"
-    /*runtimeOnly "curse.maven:fusion-854949:7464745"
-    runtimeOnly "curse.maven:smjnlib-454372:7522042"
-    runtimeOnly "curse.maven:smjnconfiglib-438332:7376963"
-    runtimeOnly "curse.maven:ctg-383129:7394727"
+    //localRuntime "curse.maven:ctm-267602:5587515"
+    /*localRuntime "curse.maven:fusion-854949:7464745"
+    localRuntime "curse.maven:smjnlib-454372:7522042"
+    localRuntime "curse.maven:smjnconfiglib-438332:7376963"
+    localRuntime "curse.maven:ctg-383129:7394727"
 
-    runtimeOnly "curse.maven:resourcefullib-570073:7312675"*/
-    //runtimeOnly "curse.maven:athena-841890:6669522"
-    //runtimeOnly "curse.maven:chipped-456956:5813117"
+    localRuntime "curse.maven:resourcefullib-570073:7312675"*/
+    //localRuntime "curse.maven:athena-841890:6669522"
+    //localRuntime "curse.maven:chipped-456956:5813117"
 
-    //runtimeOnly "curse.maven:rechiseled-558998:7589683"
+    //localRuntime "curse.maven:rechiseled-558998:7589683"
+    localRuntime "curse.maven:macaw_fences-453925:7809939"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

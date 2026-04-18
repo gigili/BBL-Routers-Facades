@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -29,10 +28,8 @@ public final class FacadeHighlighter {
         PoseStack pose = e.getPoseStack();
         var buffers = mc.renderBuffers().bufferSource();
         VertexConsumer lines = buffers.getBuffer(RenderTypes.lines());
-        Vec3 cam = e.getLevelRenderState().cameraRenderState.pos;
 
         pose.pushPose();
-
         int r = 16;
         BlockPos c = mc.player.blockPosition();
         var box = new AABB(0, 0, 0, 1, 1, 1).inflate(0.002);
@@ -44,10 +41,9 @@ public final class FacadeHighlighter {
             if (be.getData(FacadeAttachments.FACADE_STATE.get()) == null) return;
 
             ShapeRenderer.renderShape(pose, lines, shape,
-                    p.getX() - cam.x, p.getY() - cam.y, p.getZ() - cam.z,
+                    p.getX(), p.getY(), p.getZ(),
                     0xFF3399FF, 2.5f);
         });
-
         pose.popPose();
     }
 
