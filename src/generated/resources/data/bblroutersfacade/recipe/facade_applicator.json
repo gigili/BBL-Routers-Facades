@@ -3,17 +3,16 @@
   "category": "misc",
   "group": "misc",
   "key": {
-	"G": "#c:glass_blocks",
-	"I": "#c:ingots/iron",
-	"S": "#c:rods/wooden"
+    "G": "#c:glass_blocks",
+    "I": "#c:ingots/iron",
+    "S": "#c:rods/wooden"
   },
   "pattern": [
-	" G ",
-	"ISI",
-	" S "
+    " G ",
+    "ISI",
+    " S "
   ],
   "result": {
-	"count": 1,
-	"id": "bblroutersfacade:facade_applicator"
+    "id": "bblroutersfacade:facade_applicator"
   }
 }
