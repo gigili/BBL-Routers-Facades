@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.116'
+    id 'net.neoforged.moddev' version '2.0.140'
 }
 
 version = mod_version
@@ -37,16 +37,11 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     // Specify the version of NeoForge to use.
     version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
 
     // This line is optional. Access Transformers are automatically detected
     // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
@@ -138,32 +133,36 @@ dependencies {
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     //compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     //compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    //JEI
+    //implementation("mezz.jei:jei-${jei_mc_version}-neoforge:${jei_version}")
 
-    implementation "curse.maven:jade-324717:7313008"
+    implementation "curse.maven:jade-324717:7938398"
 
-    runtimeOnly "curse.maven:bbl-core-1135181:7541641"
-    compileOnly "curse.maven:bbl-core-1135181:7541641"
+    runtimeOnly "curse.maven:bbl-core-1135181:${core_version}"
+    compileOnly "curse.maven:bbl-core-1135181:${core_version}"
 
-    runtimeOnly "curse.maven:bbl-routers-1334500:7546175"
-    compileOnly "curse.maven:bbl-routers-1334500:7546175"
+    runtimeOnly "curse.maven:bbl-routers-1334500:${router_version}"
+    compileOnly "curse.maven:bbl-routers-1334500:${router_version}"
 
 
     //name-projectID:fileID
-    //runtimeOnly "curse.maven:xycraft-653786:6872525"
-    //runtimeOnly "curse.maven:xycraft-world-653789:6872532"
+    runtimeOnly "curse.maven:contextmatters-1265417:7808075"
+    runtimeOnly "curse.maven:pipematters-1494073:7808084"
+    runtimeOnly "curse.maven:volumetrics-1240222:7806225"
+    runtimeOnly "curse.maven:xycraft-653786:7808135"
+    runtimeOnly "curse.maven:xycraft-world-653789:7808144"
 
     //runtimeOnly "curse.maven:ctm-267602:5587515"
-    runtimeOnly "curse.maven:fusion-854949:7464745"
+    /*runtimeOnly "curse.maven:fusion-854949:7464745"
     runtimeOnly "curse.maven:smjnlib-454372:7522042"
     runtimeOnly "curse.maven:smjnconfiglib-438332:7376963"
     runtimeOnly "curse.maven:ctg-383129:7394727"
 
-    runtimeOnly "curse.maven:resourcefullib-570073:7312675"
+    runtimeOnly "curse.maven:resourcefullib-570073:7312675"*/
     //runtimeOnly "curse.maven:athena-841890:6669522"
     //runtimeOnly "curse.maven:chipped-456956:5813117"
 
-    runtimeOnly "curse.maven:rechiseled-558998:7589683"
+    //runtimeOnly "curse.maven:rechiseled-558998:7589683"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

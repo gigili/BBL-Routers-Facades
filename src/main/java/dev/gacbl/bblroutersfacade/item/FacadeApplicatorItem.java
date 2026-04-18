@@ -42,7 +42,7 @@ public class FacadeApplicatorItem extends Item {
 
         if (!level.isClientSide()) {
             clearPicked(stack);
-            player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_picked_facade"), true);
+            player.sendOverlayMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_picked_facade"));
             return InteractionResult.CONSUME;
         }
 
@@ -88,7 +88,7 @@ public class FacadeApplicatorItem extends Item {
                 if (!level.isClientSide()) {
                     setPickedState(stack, state);
                     var key = Util.makeDescriptionId("block", id);
-                    player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.picked_facade", Component.translatable(key)), true);
+                    player.sendOverlayMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.picked_facade", Component.translatable(key)));
                 }
                 return InteractionResult.SUCCESS;
             }

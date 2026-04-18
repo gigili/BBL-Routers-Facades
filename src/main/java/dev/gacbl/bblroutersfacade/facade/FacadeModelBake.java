@@ -1,16 +1,22 @@
 package dev.gacbl.bblroutersfacade.facade;
 
 import dev.gacbl.bblroutersfacade.RouterFacades;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
+
+import java.util.Map;
 
 @EventBusSubscriber(modid = RouterFacades.MOD_ID)
 public class FacadeModelBake {
     @SubscribeEvent
     public static void onModifyBaking(ModelEvent.ModifyBakingResult e) {
-        var models = e.getBakingResult().blockStateModels();
+        ModelBakery.BakingResult result = e.getBakingResult();
+        Map<BlockState, BlockStateModel> models = result.blockStateModels();
         for (var entry : models.entrySet()) {
             var state = entry.getKey();
             var original = entry.getValue();

@@ -20,7 +20,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 @EventBusSubscriber(modid = RouterFacades.MOD_ID, value = Dist.CLIENT)
 public final class FacadeHighlighter {
     @SubscribeEvent
-    public static void onRenderLevel(RenderLevelStageEvent.AfterEntities e) {
+    public static void onRenderLevel(RenderLevelStageEvent.AfterLevel e) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
         if (!isHoldingApplicator(mc.player.getMainHandItem()) && !isHoldingApplicator(mc.player.getOffhandItem()))

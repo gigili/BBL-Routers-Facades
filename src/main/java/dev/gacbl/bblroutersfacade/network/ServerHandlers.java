@@ -28,10 +28,10 @@ public final class ServerHandlers {
 
             if (msg.state() == null) {
                 FacadeOps.clear(player.level(), msg.pos());
-                player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_facade"), true);
+                player.sendOverlayMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.cleared_facade"));
             } else {
                 FacadeOps.apply(player.level(), msg.pos(), msg.state());
-                player.displayClientMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.applied_facade", msg.state().getBlock().getName()), true);
+                player.sendOverlayMessage(Component.translatable("item.bblroutersfacade.facade_applicator.actions.applied_facade", msg.state().getBlock().getName()));
             }
         });
     }

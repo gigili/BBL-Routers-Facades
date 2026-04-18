@@ -2,18 +2,18 @@ package dev.gacbl.bblroutersfacade.facade;
 
 import dev.gacbl.bblroutersfacade.item.ModItems;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TriState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
@@ -43,7 +43,7 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
     }
 
     @Override
-    public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockModelPart> parts) {
+    public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockStateModelPart> parts) {
         var data = view.getModelData(pos);
         var camo = data.get(FacadeConnectionHelper.FACADE_STATE_PROPERTY);
 
@@ -64,9 +64,9 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
             var camoModel = lookup.apply(connectedState);
             var wrappedView = view instanceof FacadeLevelWrapper ? view : new FacadeLevelWrapper(view);
 
-            List<BlockModelPart> camoParts = new ArrayList<>();
+            List<BlockStateModelPart> camoParts = new ArrayList<>();
             camoModel.collectParts(wrappedView, pos, connectedState, random, camoParts);
-            for (BlockModelPart part : camoParts) {
+            for (BlockStateModelPart part : camoParts) {
                 parts.add(new FacadeModelPart(part, connectedState, nearby));
             }
 
@@ -82,12 +82,12 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
         return stack.is(ModItems.FACADE_APPLICATOR.get());
     }
 
-    private static class FacadeModelPart implements BlockModelPart {
-        private final BlockModelPart parent;
+    private static class FacadeModelPart implements BlockStateModelPart {
+        private final BlockStateModelPart parent;
         private final BlockState camoState;
         private final boolean translucent;
 
-        public FacadeModelPart(BlockModelPart parent, BlockState camoState, boolean translucent) {
+        public FacadeModelPart(BlockStateModelPart parent, BlockState camoState, boolean translucent) {
             this.parent = parent;
             this.camoState = camoState;
             this.translucent = translucent;
@@ -115,11 +115,22 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
                     setAlpha(colors.color(3))
             );
 
+            // In 26.1, we must also update the MaterialInfo to use translucent layer
+            BakedQuad.MaterialInfo oldInfo = quad.materialInfo();
+            BakedQuad.MaterialInfo newInfo = new BakedQuad.MaterialInfo(
+                    oldInfo.sprite(),
+                    ChunkSectionLayer.TRANSLUCENT,
+                    oldInfo.itemRenderType(),
+                    oldInfo.tintIndex(),
+                    oldInfo.shade(),
+                    oldInfo.lightEmission(),
+                    oldInfo.ambientOcclusion()
+            );
+
             return new BakedQuad(
                     quad.position0(), quad.position1(), quad.position2(), quad.position3(),
                     quad.packedUV0(), quad.packedUV1(), quad.packedUV2(), quad.packedUV3(),
-                    quad.tintIndex(), quad.direction(), quad.sprite(), quad.shade(), quad.lightEmission(),
-                    quad.bakedNormals(), newColors, quad.hasAmbientOcclusion()
+                    quad.direction(), newInfo, quad.bakedNormals(), newColors
             );
         }
 
@@ -133,22 +144,18 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
         }
 
         @Override
-        public @NonNull TextureAtlasSprite particleIcon() {
-            return parent.particleIcon();
-        }
-
-        @Override
-        public @NonNull ChunkSectionLayer getRenderType(@NonNull BlockState state) {
-            if (translucent) {
-                return ChunkSectionLayer.TRANSLUCENT;
-            }
-            // Redirect to use the camo state instead of the host state (Router)
-            return parent.getRenderType(camoState);
+        public Material.Baked particleMaterial() {
+            return parent.particleMaterial();
         }
 
         @Override
         public @NonNull TriState ambientOcclusion() {
             return parent.ambientOcclusion();
+        }
+
+        @Override
+        public @BakedQuad.MaterialFlags int materialFlags() {
+            return parent.materialFlags();
         }
     }
 
@@ -233,7 +240,7 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
     }
 
     private static BlockStateModel bakedFor(BlockState s) {
-        return Minecraft.getInstance().getModelManager().getBlockModelShaper().getBlockModel(s);
+        return Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(s);
     }
 
     public static FacadeModelWrapper wrap(BlockStateModel original) {

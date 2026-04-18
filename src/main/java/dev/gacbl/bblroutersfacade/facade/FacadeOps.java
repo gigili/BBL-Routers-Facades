@@ -19,7 +19,7 @@ public final class FacadeOps {
             var bs = sl.getBlockState(pos);
             sl.sendBlockUpdated(pos, bs, bs, 3);
             sl.getChunkSource().blockChanged(pos);
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(pos), new FacadePayloads.FacadeRefresh(pos, facade));
+            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4), new FacadePayloads.FacadeRefresh(pos, facade));
 
             // Force model data update
             be.requestModelDataUpdate();
@@ -37,7 +37,7 @@ public final class FacadeOps {
             var bs = sl.getBlockState(pos);
             sl.sendBlockUpdated(pos, bs, bs, 3);
             sl.getChunkSource().blockChanged(pos);
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(pos), new FacadePayloads.FacadeRefresh(pos, null));
+            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4), new FacadePayloads.FacadeRefresh(pos, null));
 
             // Force model data update
             be.requestModelDataUpdate();

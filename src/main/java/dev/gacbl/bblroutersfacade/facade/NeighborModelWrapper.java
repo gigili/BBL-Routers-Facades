@@ -1,10 +1,10 @@
 package dev.gacbl.bblroutersfacade.facade;
 
-import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ public class NeighborModelWrapper extends DelegateBlockStateModel {
     }
 
     @Override
-    public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockModelPart> parts) {
+    public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockStateModelPart> parts) {
         // Pass the wrapped view to the underlying model's collectParts.
         // This allows it to see our facades as their camouflaged states.
         super.collectParts(new FacadeLevelWrapper(view), pos, state, random, parts);

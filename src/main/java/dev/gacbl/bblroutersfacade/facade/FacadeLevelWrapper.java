@@ -1,8 +1,8 @@
 package dev.gacbl.bblroutersfacade.facade;
 
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.CardinalLighting;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -81,8 +81,8 @@ public class FacadeLevelWrapper implements BlockAndTintGetter {
     }
 
     @Override
-    public float getShade(@NotNull Direction direction, boolean bl) {
-        return delegate.getShade(direction, bl);
+    public @NotNull CardinalLighting cardinalLighting() {
+        return delegate.cardinalLighting();
     }
 
     @Override
