@@ -8,6 +8,8 @@ plugins {
 version = mod_version
 group = mod_group_id
 
+def mc_version = "neoforge_${minecraft_version}"
+
 def mavenUrl = System.getenv("MAVEN_URL")
 def mavenUser = System.getenv("MAVEN_USERNAME")
 def mavenPass = System.getenv("MAVEN_TOKEN")
@@ -119,8 +121,6 @@ neoForge {
         }
     }
 
-    def mc_version = "neoforge_${minecraft_version}"
-
     jar {
         archiveBaseName.set(mod_id)
         archiveVersion.set(version)
@@ -201,6 +201,7 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
+            artifactId = "${mod_id}-${mc_version}"
         }
     }
 
