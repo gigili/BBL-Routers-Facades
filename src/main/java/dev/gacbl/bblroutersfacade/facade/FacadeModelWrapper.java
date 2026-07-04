@@ -158,7 +158,7 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
         }
 
         @Override
-        public Material.Baked particleMaterial() {
+        public Material.@NonNull Baked particleMaterial() {
             return parent.particleMaterial();
         }
 
