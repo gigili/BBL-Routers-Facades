@@ -44,16 +44,7 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
 
     @Override
     public void collectParts(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random, @NotNull List<BlockStateModelPart> parts) {
-        var data = view.getModelData(pos);
-        var camo = data.get(FacadeConnectionHelper.FACADE_STATE_PROPERTY);
-
-        // Fallback to BE data if ModelData is empty (shouldn't happen with our wrapper, but good for safety)
-        if (camo == null) {
-            var be = view.getBlockEntity(pos);
-            if (be != null) {
-                camo = be.getData(FacadeAttachments.FACADE_STATE.get());
-            }
-        }
+        BlockState camo = getCamo(view, pos);
 
         if (camo != null) {
             Player player = Minecraft.getInstance().player;
@@ -76,6 +67,29 @@ public class FacadeModelWrapper extends DelegateBlockStateModel {
             return;
         }
         super.collectParts(view, pos, state, random, parts);
+    }
+
+    @Override
+    public @Nullable Object createGeometryKey(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull RandomSource random) {
+        BlockState camo = getCamo(view, pos);
+        if (camo != null) {
+            BlockState connectedState = getConnectedState(view, pos, camo);
+            var camoModel = lookup.apply(connectedState);
+            return camoModel.createGeometryKey(view, pos, connectedState, random);
+        }
+        return delegate.createGeometryKey(view, pos, state, random);
+    }
+
+    private BlockState getCamo(@NotNull BlockAndTintGetter view, @NotNull BlockPos pos) {
+        var data = view.getModelData(pos);
+        var camo = data.get(FacadeConnectionHelper.FACADE_STATE_PROPERTY);
+        if (camo == null) {
+            var be = view.getBlockEntity(pos);
+            if (be != null) {
+                camo = be.getData(FacadeAttachments.FACADE_STATE.get());
+            }
+        }
+        return camo;
     }
 
     private static boolean isHoldingWrench(ItemStack stack) {
