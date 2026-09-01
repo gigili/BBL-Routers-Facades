@@ -27,16 +27,6 @@ public class FacadeModelBake {
             if ("routers".equals(ns) || "bbl_routers".equals(ns)) {
                 // Our router block (Facade host)
                 entry.setValue(FacadeModelWrapper.wrap(original));
-            } else if ("sophisticatedbackpacks".equals(ns)) {
-                // Don't wrap Sophisticated Backpacks blocks.
-                // Their ClientBackpackShapeProvider checks model.getClass() and
-                // warns about unknown wrapper types, and these blocks don't need
-                // facade neighbor awareness anyway.
-                continue;
-            } else {
-                // Wrap other block models with NeighborModelWrapper so they can
-                // see facades as their camouflaged neighbor blocks.
-                entry.setValue(new NeighborModelWrapper(original));
             }
         }
     }

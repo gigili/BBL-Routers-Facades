@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A wrapper for BlockAndTintGetter (Level) used exclusively during client-side
- * model baking for connected textures (like XyCraft).
+ * A wrapper for BlockAndTintGetter used while collecting client-side model
+ * geometry for connected textures (like XyCraft).
  * <p>
  * It spoofs the BlockState returned for our facade/router block positions,
  * reporting the *camouflaged state* instead of the router block state.

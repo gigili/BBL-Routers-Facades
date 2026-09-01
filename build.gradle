@@ -140,7 +140,7 @@ dependencies {
     //JEI
     implementation("mezz.jei:jei-${jei_mc_version}-neoforge:${jei_version}")
 
-    implementation "curse.maven:jade-324717:7938398"
+    implementation "curse.maven:jade-324717:8651070"
 
     runtimeOnly "curse.maven:bbl-core-1135181:${core_version}"
     compileOnly "curse.maven:bbl-core-1135181:${core_version}"
@@ -173,6 +173,10 @@ dependencies {
     //localRuntime "curse.maven:sophisticated-core-618298:7932875"
     //localRuntime "curse.maven:sophisticated-storage-619320:7932856"
     //localRuntime "curse.maven:sophisticated-backpacks-422301:7916616"
+
+    //EvilCraft
+    localRuntime "curse.maven:cyclops-232758:8733027"
+    localRuntime "curse.maven:evilcraft-74610:8778532"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
